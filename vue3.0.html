@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        html {
+            height: 10000px;
+        }
+
+        button {
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        .pos {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .btn {
+            opacity: 1;
+            transition: all .8s;
+        }
+
+        .a1 {
+            position: relative;
+            top: 20px;
+            left: 50px;
+            width: 100px;
+            height: 100px;
+            border: 1px solid red;
+        }
+
+        .a2 {
+            position: relative;
+            top: 130px;
+            left: 100px;
+            width: 100px;
+            height: 100px;
+            border: 1px solid red;
+            margin-top: 200px;
+        }
+
+        .normal {
+            position: absolute;
+            opacity: 0.8;
+            color: white;
+            border-radius: 5px;
+            padding: 20px;
+            overflow: hidden;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app"></div>
+</body>
+<script src="https://s1.zhuanstatic.com/common/js/vue-next-3.0.0-alpha.0.js"></script>
+<script>
+    var b = [];
+    const {
+        createApp,
+        reactive,
+        computed,
+        effect,
+        ref,
+        onMounted,
+        onUnmounted,
+        watch,
+        // getCurrentInstance
+    } = Vue;
+
+    function addmousemove() {
+        let Y = ref(0);
+        let X = ref(0);
+        let seY = ref(0);
+        let show = ref(false);
+        function update(e) {
+            Y.value = e.pageY;
+            X.value = e.pageX;
+        }
+        function getScroll() {
+            window.screenTop = document.documentElement.scrollTop | document.body.scrollTop;
+            // console.log( window.screenTop == 200)
+            show.value = (window.screenTop >= 200);
+            // console.log(show.value)
+        }
+        onMounted(() => {
+            window.addEventListener('mousemove', update);
+            window.addEventListener('scroll', getScroll);
+            // window.onscroll
+        });
+        onUnmounted(() => {
+            window.removeEventListener('mousemove', update);
+            window.removeEventListener('scroll', getScroll);
+        });
+        return {
+            X,
+            Y,
+            show
+        };
+    }
+    const createapp_demo = {
+        template: `<button @click="btnClick" class="btn" :style="{'opacity': show ? 1 : .5,'fontSize':show?'30px':'12px'}">
+                        {{state.name+show}}今年{{state.age}}岁了,乘以2是{{state.double}}
+                    </button>
+                    <div class="pos">
+                        <p>
+                            <h2>show   {{show}}</h2>
+                            这是鼠标Y：{{Y}} state里的{{state.Y}}
+                        </p>
+                        <p>
+                            这是鼠标X:{{X}} state里的{{state.X}}
+                        </p>
+                    </div>
+                    <div>
+                        <p>{{state.value}}</p>
+                        <input type="text" v-model="state.value" />
+                    </div>
+                    <div class="a1" @mouseenter="enter($event)" @mouseleave="leave($event)"></div>
+                    <div class="a2" @mouseenter="enter($event)" @mouseleave="leave($event)"></div>
+                    <div id="mouse" class="normal" ref="mouse" ></div>
+                    `,
+        setup(props, context) {
+            props: {
+                str: String
+            }
+            const state = reactive({
+                name: "vue3.0",
+                age: 4,
+                double: computed(() => state.age * 2),
+                X: 0,
+                Y: 0,
+                value: ""
+            })
+            const mouse = ref(null);
+            const {
+                X,
+                Y,
+                show
+            } = addmousemove();
+            state.X = X;
+            state.Y = Y;
+
+            function enter(event) {
+                // onMounted(() => {
+                //     console.log(context);
+                // })
+                let showDiv = mouse.value;
+                showDiv.style = 'background-color:black;border:1px solid black'
+                showDiv.style.left = (event.pageX-50)+'px';
+                showDiv.style.top = (event.pageY-80)+'px';
+                showDiv.style.display = 'block';
+                showDiv.innerHTML = "哈哈哈哈哈哈哈哈!";
+                // console.log(getCurrentInstance())
+            }
+            onMounted(function () {
+                console.log({...context})
+            })
+            function leave(event) {
+                // console.log(event);
+                var showDiv = mouse.value;
+                showDiv.style.display = 'none';
+                showDiv.innerHTML = '';
+            }
+
+            function btnClick() {
+                state.age++;
+            }
+            watch(() => {
+                    return state.value
+                },
+                (val, oldVal) => {
+                    val == "你好" ? window.alert(999) : "";
+                    // console.log(val, oldVal);
+                })
+            // effect(() => {
+            //     console.log(X,Y)
+            // })
+            return {
+                state,
+                btnClick,
+                X,
+                Y,
+                show,
+                enter,
+                leave,
+                mouse
+            }
+        }
+    }
+    createApp().mount(createapp_demo, '#app', {
+        str: "989"
+    })
+</script>
+
+</html>
